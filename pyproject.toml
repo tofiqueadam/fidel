@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fidel"
+version = "0.1.0"
+description = "A small, dependency-free toolkit for Amharic and Ge'ez-script text."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Tofique Adam" }]
+keywords = ["amharic", "geez", "ethiopic", "nlp", "transliteration", "normalization"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Text Processing :: Linguistic",
+]
+
+[project.scripts]
+fidel = "fidel.cli:main"
+
+[project.urls]
+Source = "https://github.com/tofiqueadam/fidel"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "--doctest-modules --doctest-glob=README.md"
+testpaths = ["src", "tests", "README.md"]
