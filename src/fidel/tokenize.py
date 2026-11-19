@@ -5,10 +5,14 @@ import re
 
 from ._tables import LETTER_RANGES
 
-_SENT_END = "።፧?!፨"
-_SENTENCE = re.compile(rf"[^{_SENT_END}]+[{_SENT_END}]*|[{_SENT_END}]+")
+# A sentence ends at ። ፧ ? ! ፨, or at ፡፡ (two word separators), which many
+# writers type in place of ።.
+_SENT_END = re.compile(r"(?:[።፧?!፨]|፡{2,})+")
+_L = f"[{LETTER_RANGES}]"
 _TOKEN = re.compile(
-    rf"[{LETTER_RANGES}]+"        # Ge'ez words
+    rf"{_L}{{1,2}}(?:\.{_L}{{1,2}})+\.?"  # dotted abbreviations: ዓ.ም. ዓ.ዓ. አ.አ.ዩ
+    rf"|{_L}{{1,2}}/{_L}+"        # slashed abbreviations: ት/ቤት ዶ/ር ወ/ሮ
+    rf"|{_L}+"                    # Ge'ez words
     r"|[፩-፼]+"          # Ethiopic numerals
     r"|[0-9]+(?:[.,][0-9]+)*"     # Arabic numbers
     r"|[^\W\d_]+"                 # other-script words
@@ -21,12 +25,26 @@ def sentences(text: str) -> list[str]:
 
     >>> sentences("ሰላም ነህ? ደህና ነኝ።")
     ['ሰላም ነህ?', 'ደህና ነኝ።']
+    >>> sentences("ደህና ነኝ፡፡ አመሰግናለሁ")
+    ['ደህና ነኝ፡፡', 'አመሰግናለሁ']
     """
-    return [s.strip() for s in _SENTENCE.findall(text) if s.strip()]
+    out, start = [], 0
+    for m in _SENT_END.finditer(text):
+        s = text[start:m.end()].strip()
+        if s:
+            out.append(s)
+        start = m.end()
+    tail = text[start:].strip()
+    if tail:
+        out.append(tail)
+    return out
 
 
 def words(text: str, *, punct: bool = True) -> list[str]:
     """Split text into tokens. ``፡`` and whitespace separate words.
+
+    Common abbreviations stay whole: dotted ones such as ``ዓ.ም.`` and slashed
+    ones such as ``ት/ቤት`` (school) or ``ዶ/ር`` (Dr.).
 
     >>> words("ሰላም፡ዓለም።")
     ['ሰላም', 'ዓለም', '።']

@@ -24,10 +24,13 @@ pip install git+https://github.com/tofiqueadam/fidel
 'ሀይለ ስላሴ።'
 
 >>> fidel.words("ሰላም፡ዓለም፣ በ፳፻፲፮ ዓ.ም.")       # ፡ separates words
-['ሰላም', 'ዓለም', '፣', 'በ', '፳፻፲፮', 'ዓ', '.', 'ም', '.']
+['ሰላም', 'ዓለም', '፣', 'በ', '፳፻፲፮', 'ዓ.ም.']
 
->>> fidel.sentences("ሰላም ነህ? ደህና ነኝ።")
-['ሰላም ነህ?', 'ደህና ነኝ።']
+>>> fidel.sentences("ሰላም ነህ? ደህና ነኝ፡፡ አመሰግናለሁ")  # ፡፡ also ends a sentence
+['ሰላም ነህ?', 'ደህና ነኝ፡፡', 'አመሰግናለሁ']
+
+>>> fidel.words("ዶ/ር አበበ ወደ ት/ቤት ሄዱ")             # abbreviations stay whole
+['ዶ/ር', 'አበበ', 'ወደ', 'ት/ቤት', 'ሄዱ']
 
 >>> fidel.romanize("ኢትዮጵያ")                     # lossless, SERA-style
 "'ityoPya"

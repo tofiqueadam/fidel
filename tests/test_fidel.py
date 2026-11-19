@@ -142,6 +142,22 @@ def test_sentences():
     assert fidel.sentences("ሰላም ነህ? ደህና ነኝ። አመሰግናለሁ") == ["ሰላም ነህ?", "ደህና ነኝ።", "አመሰግናለሁ"]
 
 
+def test_sentences_double_separator():
+    # ፡፡ is a common stand-in for ።
+    assert fidel.sentences("ሐይለ ሥላሴ፡፡ ሰላም ነህ? ደህና") == ["ሐይለ ሥላሴ፡፡", "ሰላም ነህ?", "ደህና"]
+    # a single ፡ only separates words
+    assert fidel.sentences("ሰላም፡ዓለም።") == ["ሰላም፡ዓለም።"]
+    assert fidel.sentences("") == []
+
+
+def test_words_keep_abbreviations():
+    assert fidel.words("በ2016 ዓ.ም. ተመሠረተ") == ["በ", "2016", "ዓ.ም.", "ተመሠረተ"]
+    assert fidel.words("ዶ/ር አበበ ወደ ት/ቤት ሄዱ") == ["ዶ/ር", "አበበ", "ወደ", "ት/ቤት", "ሄዱ"]
+    assert fidel.words("አ.አ.ዩ", punct=False) == ["አ.አ.ዩ"]
+    # a missing space after a full stop does not glue two real words together
+    assert fidel.words("ሰላም.ደህና") == ["ሰላም", ".", "ደህና"]
+
+
 def test_words():
     assert fidel.words("ሰላም፡ዓለም፣ በ፳፻፲፮ 3.5 ok።") == ["ሰላም", "ዓለም", "፣", "በ", "፳፻፲፮", "3.5", "ok", "።"]
     assert fidel.words("ሰላም፣ ዓለም።", punct=False) == ["ሰላም", "ዓለም"]

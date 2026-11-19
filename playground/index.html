@@ -55,6 +55,20 @@ th { font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: .14
 td.ch { font-family: var(--eth); font-size: 20px; }
 .scroll { overflow-x: auto; max-height: 300px; overflow-y: auto; }
 .diff { background: color-mix(in srgb, var(--accent) 20%, transparent); box-shadow: inset 0 -2px var(--accent); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.stats b { color: var(--ink); font-weight: 600; }
+.stats .t { color: var(--accent); }
+.spacer { flex: 1; }
+.copy { padding: 2px 8px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.chart-wrap { overflow-x: auto; }
+.chart { display: grid; grid-template-columns: 34px repeat(8, minmax(34px, 58px)); gap: 3px; min-width: 330px; justify-content: center; }
+.chart .ch-h { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: center; align-self: end; padding-bottom: 2px; letter-spacing: .08em; }
+.chart .rh { font-family: var(--mono); font-size: 11px; color: var(--muted); align-self: center; text-align: right; padding-right: 4px; }
+.cell { font-family: var(--eth); font-size: 19px; padding: 3px 0; background: var(--bg); border: 1px solid var(--faint); transition: background .25s, color .25s, border-color .25s; }
+.cell:hover, .cell:focus-visible { border-color: var(--accent); }
+.cell.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+.legend .sw { display: inline-block; width: 12px; height: 12px; background: var(--accent); vertical-align: -2px; margin-right: 6px; }
 footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--faint); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 [aria-busy="true"] .out, [aria-busy="true"] .chips { opacity: .4; }
 </style>
@@ -71,22 +85,25 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--faint)
 
 <main class="grid" id="main" aria-busy="true">
   <section class="card wide">
-    <div class="head"><label class="label" for="src">Input text</label><span class="label">try messy text: ሐ/ሀ, ፡፡, ቱዋ, Ethiopic numerals</span></div>
-    <textarea id="src" spellcheck="false">ሐይለ ሥላሴ፡፡ ሰላም፡ዓለም፣ በ፳፻፲፮ ዓ.ም. ቱዋ ሰላም ነህ? ደህና ነኝ።</textarea>
+    <div class="head"><label class="label" for="src">Input text</label><span class="label">try messy text: ሐ/ሀ · ፡፡ · ዓ.ም. · ት/ቤት · ፳፻</span></div>
+    <textarea id="src" spellcheck="false">ሰላም፡ዓለም፡፡ ዶ/ር አበበ በ፲፱፻፹፯ ዓ.ም. ወደ ት/ቤት ሄዱ። ሐይለ ሥላሴ ቤተ መንግሥት ነበሩ? ደህና ነኝ።</textarea>
     <div class="row">
       <label class="label" for="level">Normalize level</label>
       <select id="level"><option>light</option><option selected>standard</option><option>aggressive</option></select>
       <button type="button" data-sample="ኢትዮጵያ በ፲፱፻፹፯ ዓ.ም. ሕገ መንግሥት አጸደቀች፡፡ ፀሐይ ወጣች።">Sample: history</button>
       <button type="button" data-sample="ሰላም፡ነው፡ወይ? እሺ፡፡ ፻ ብር ይበቃል።">Sample: chat</button>
+      <span class="spacer"></span>
+      <button type="button" id="share">Copy share link</button>
     </div>
+    <div class="stats" id="stats" aria-live="polite"></div>
   </section>
 
   <section class="card">
-    <div class="head"><span class="label">Normalized <span class="diff">changed</span></span><code>normalize(text, level)</code></div>
+    <div class="head"><span class="label">Normalized <span class="diff">changed</span></span><span><code>normalize(text, level)</code> <button type="button" class="copy" data-copy="o-norm">Copy</button></span></div>
     <div class="out eth" id="o-norm"></div>
   </section>
   <section class="card">
-    <div class="head"><span class="label">Romanized (SERA)</span><code>romanize(text)</code></div>
+    <div class="head"><span class="label">Romanized (SERA)</span><span><code>romanize(text)</code> <button type="button" class="copy" data-copy="o-rom">Copy</button></span></div>
     <div class="out mono" id="o-rom"></div>
   </section>
   <section class="card">
@@ -116,6 +133,16 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--faint)
     <input id="n" value="2016" inputmode="numeric" autocomplete="off">
     <div class="out eth" id="o-eth" style="margin-top:10px"></div>
   </section>
+
+  <section class="card wide">
+    <div class="head"><span class="label">The Fidel chart · 34 consonants × 7 vowel orders + labialized</span><code>row(base)</code></div>
+    <div class="row legend" style="margin:0 0 12px">
+      <span class="label"><span class="sw"></span>in your text</span>
+      <span class="label">click a letter to insert it · hover for romanization</span>
+      <span class="label" id="coverage"></span>
+    </div>
+    <div class="chart-wrap"><div class="chart" id="chart"></div></div>
+  </section>
 </main>
 
 <footer>
@@ -143,7 +170,19 @@ def analyse(text, level):
     return json.dumps(dict(
         norm=segs(text, fidel.normalize(text, level)), rom=fidel.romanize(text),
         words=fidel.words(text), sent=fidel.sentences(text),
-        num=segs(text, fidel.replace_numerals(text)), syl=syl))
+        num=segs(text, fidel.replace_numerals(text)), syl=syl, stats=stats(text)))
+def stats(text):
+    syl = fidel.split(text)
+    return dict(chars=len(text), syl=len(syl), words=len(fidel.words(text, punct=False)),
+                sent=len(fidel.sentences(text)), used=sorted({s.char for s in syl}))
+def chart():
+    from fidel._tables import SYLLABLES
+    bases = sorted({s.row for s in SYLLABLES.values() if s.kind == 'plain'})
+    out = []
+    for b in bases:
+        cells = fidel.row(chr(b))
+        out.append(dict(c=fidel.syllable(chr(b)).consonant, cells=[[ch, fidel.romanize(ch)] for ch in cells]))
+    return json.dumps(out)
 def latin(s):
     return fidel.to_fidel(s)
 def ethnum(s):
@@ -159,14 +198,60 @@ const marked = (runs) => runs.map(([t, c]) => (c ? `<span class="diff">${esc(t)}
 function render() {
   if (!api) return;
   const text = $('src').value;
+  const t0 = performance.now();
   const r = JSON.parse(api.analyse(text, $('level').value));
+  const ms = performance.now() - t0;
   $('o-norm').innerHTML = marked(r.norm);
   $('o-rom').textContent = r.rom;
   $('o-words').innerHTML = r.words.map((w) => `<span class="chip${/^[\p{P}\p{S}]+$/u.test(w) ? ' p' : ''}">${esc(w)}</span>`).join('');
   $('o-sent').innerHTML = r.sent.map((s) => `<li>${esc(s)}</li>`).join('');
   $('o-num').innerHTML = marked(r.num);
+  const st = r.stats;
+  $('stats').innerHTML = `<span><b>${st.chars}</b> chars</span><span><b>${st.syl}</b> syllables</span><span><b>${st.words}</b> words</span><span><b>${st.sent}</b> sentences</span><span class="t">analysed by Python in ${ms < 0.1 ? '<0.1' : ms.toFixed(1)} ms</span>`;
+  const used = new Set(st.used);
+  let lit = 0;
+  for (const c of chartCells) { const on = used.has(c.dataset.ch); c.classList.toggle('on', on); if (on) lit++; }
+  $('coverage').textContent = `${used.size} distinct letters used · ${lit} on this chart`;
   $('o-syl').innerHTML = r.syl.map((s) => `<tr><td class="ch">${esc(s.ch)}</td><td>${esc(s.c)}</td><td>${s.o}</td><td>${esc(s.k)}</td></tr>`).join('');
 }
+let chartCells = [];
+function buildChart() {
+  const rows = JSON.parse(api.chart());
+  const head = ['', 'ä', 'u', 'i', 'a', 'e', 'ə', 'o', 'wa'].map((h) => `<span class="ch-h">${h}</span>`).join('');
+  $('chart').innerHTML = head + rows.map((r) => `<span class="rh">${esc(r.c)}</span>` +
+    Array.from({ length: 8 }, (_, i) => r.cells[i]
+      ? `<button type="button" class="cell" data-ch="${esc(r.cells[i][0])}" title="${esc(r.cells[i][1])}" aria-label="${esc(r.cells[i][0])}, ${esc(r.cells[i][1])}">${esc(r.cells[i][0])}</button>`
+      : '<span></span>').join('')).join('');
+  chartCells = [...$('chart').querySelectorAll('.cell')];
+}
+$('chart').addEventListener('click', (e) => {
+  const b = e.target.closest('.cell');
+  if (!b) return;
+  const ta = $('src');
+  ta.setRangeText(b.dataset.ch, ta.selectionStart, ta.selectionEnd, 'end');
+  render();
+});
+
+// Share: the text lives in the URL hash, so links work on a static host.
+function readHash() {
+  try {
+    if (location.hash.startsWith('#t=')) $('src').value = decodeURIComponent(location.hash.slice(3)).slice(0, 4000);
+  } catch { /* malformed link: keep the default text */ }
+}
+readHash();
+$('share').addEventListener('click', async () => {
+  history.replaceState(null, '', '#t=' + encodeURIComponent($('src').value));
+  const b = $('share');
+  try { await navigator.clipboard.writeText(location.href); b.textContent = 'Link copied ✓'; }
+  catch { b.textContent = 'Link is in the address bar'; }
+  setTimeout(() => { b.textContent = 'Copy share link'; }, 1800);
+});
+document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($(b.dataset.copy).textContent); b.textContent = 'Copied ✓'; }
+  catch { b.textContent = 'Copy failed'; }
+  setTimeout(() => { b.textContent = 'Copy'; }, 1500);
+}));
+
 const renderLat = () => { if (api) $('o-fid').textContent = api.latin($('lat').value); };
 const renderNum = () => { if (api) $('o-eth').textContent = api.ethnum($('n').value) || '—'; };
 
@@ -190,7 +275,8 @@ document.querySelectorAll('[data-sample]').forEach((b) => b.addEventListener('cl
     }));
     py.runPython('import sys; sys.path.insert(0, "/home/pyodide")');
     py.runPython(GLUE);
-    api = { analyse: py.globals.get('analyse'), latin: py.globals.get('latin'), ethnum: py.globals.get('ethnum') };
+    api = { analyse: py.globals.get('analyse'), latin: py.globals.get('latin'), ethnum: py.globals.get('ethnum'), chart: py.globals.get('chart') };
+    buildChart();
     const v = py.runPython('import fidel; fidel.__version__');
     $('status').textContent = `Ready · fidel ${v} · Python ${py.runPython('import sys; sys.version.split()[0]')}`;
     $('status').classList.add('ready');

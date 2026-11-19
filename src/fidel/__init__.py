@@ -9,4 +9,4 @@ __all__ = [
     "LEVELS", "compose", "from_ethiopic", "is_ethiopic", "normalize", "replace_numerals",
     "romanize", "row", "sentences", "split", "syllable", "to_ethiopic", "to_fidel", "words",
 ]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
