@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fidel playground</title>
+<meta name="description" content="Try fidel, a dependency-free Python toolkit for Amharic text, live in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230E1217'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23FF6B3D'%3E%E1%8D%8A%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #F4F1EA; --ink: #17171B; --muted: #6E6A62; --faint: #DDD7CA; --panel: #FBF9F4; --accent: #E4572E;
+  --mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+  --sans: Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --eth: 'Noto Sans Ethiopic', Nyala, Ebrima, Kefa, 'Abyssinica SIL', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0E1217; --ink: #ECE7DC; --muted: #8B9099; --faint: #262C35; --panel: #131820; --accent: #FF6B3D; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+body { max-width: 1120px; margin: 0 auto; padding: 32px 16px 48px; }
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.accent { color: var(--accent); }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; border-bottom: 1.5px solid var(--ink); padding-bottom: 16px; }
+h1 { margin: 8px 0 0; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.02em; line-height: 1; }
+h1 .eth { font-family: var(--eth); color: var(--accent); font-weight: 700; }
+.sub { margin: 10px 0 0; color: var(--muted); max-width: 60ch; line-height: 1.5; }
+#status { font-family: var(--mono); font-size: 12px; padding: 6px 10px; border: 1px solid var(--faint); white-space: nowrap; }
+#status.ready { border-color: var(--accent); color: var(--accent); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; align-items: start; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--faint); padding: 16px; min-width: 0; }
+.card.wide { grid-column: 1 / -1; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.head code { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+textarea, input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--faint); }
+textarea { width: 100%; min-height: 96px; padding: 12px; font-family: var(--eth); font-size: 20px; line-height: 1.6; resize: vertical; }
+input { padding: 8px 10px; width: 100%; }
+input.eth, .out.eth { font-family: var(--eth); }
+textarea:focus, input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+select { padding: 6px 8px; font-family: var(--mono); font-size: 12px; }
+button { padding: 6px 10px; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+.out { font-size: 19px; line-height: 1.6; overflow-wrap: anywhere; min-height: 1.6em; }
+.out.mono { font-family: var(--mono); font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--eth); font-size: 16px; padding: 2px 8px; border: 1px solid var(--faint); background: var(--bg); }
+.chip.p { color: var(--muted); }
+ol { margin: 0; padding-left: 22px; font-family: var(--eth); font-size: 18px; line-height: 1.7; }
+table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--faint); white-space: nowrap; }
+th { font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+td.ch { font-family: var(--eth); font-size: 20px; }
+.scroll { overflow-x: auto; max-height: 300px; overflow-y: auto; }
+.diff { background: color-mix(in srgb, var(--accent) 20%, transparent); box-shadow: inset 0 -2px var(--accent); }
+footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--faint); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+[aria-busy="true"] .out, [aria-busy="true"] .chips { opacity: .4; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <span class="label accent">◆ Live playground · Python in your browser</span>
+    <h1>fidel <span class="eth">ፊደል</span></h1>
+    <p class="sub">The real <a href="https://github.com/tofiqueadam/fidel">fidel</a> library, running client-side on <a href="https://pyodide.org">Pyodide</a>. Type or paste Amharic below. Nothing is sent to a server.</p>
+  </div>
+  <span id="status" role="status">Loading Python…</span>
+</header>
+
+<main class="grid" id="main" aria-busy="true">
+  <section class="card wide">
+    <div class="head"><label class="label" for="src">Input text</label><span class="label">try messy text: ሐ/ሀ, ፡፡, ቱዋ, Ethiopic numerals</span></div>
+    <textarea id="src" spellcheck="false">ሐይለ ሥላሴ፡፡ ሰላም፡ዓለም፣ በ፳፻፲፮ ዓ.ም. ቱዋ ሰላም ነህ? ደህና ነኝ።</textarea>
+    <div class="row">
+      <label class="label" for="level">Normalize level</label>
+      <select id="level"><option>light</option><option selected>standard</option><option>aggressive</option></select>
+      <button type="button" data-sample="ኢትዮጵያ በ፲፱፻፹፯ ዓ.ም. ሕገ መንግሥት አጸደቀች፡፡ ፀሐይ ወጣች።">Sample: history</button>
+      <button type="button" data-sample="ሰላም፡ነው፡ወይ? እሺ፡፡ ፻ ብር ይበቃል።">Sample: chat</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="head"><span class="label">Normalized <span class="diff">changed</span></span><code>normalize(text, level)</code></div>
+    <div class="out eth" id="o-norm"></div>
+  </section>
+  <section class="card">
+    <div class="head"><span class="label">Romanized (SERA)</span><code>romanize(text)</code></div>
+    <div class="out mono" id="o-rom"></div>
+  </section>
+  <section class="card">
+    <div class="head"><span class="label">Words</span><code>words(text)</code></div>
+    <div class="chips" id="o-words"></div>
+  </section>
+  <section class="card">
+    <div class="head"><span class="label">Sentences</span><code>sentences(text)</code></div>
+    <ol id="o-sent"></ol>
+  </section>
+  <section class="card">
+    <div class="head"><span class="label">Numerals → digits</span><code>replace_numerals(text)</code></div>
+    <div class="out eth" id="o-num"></div>
+  </section>
+  <section class="card">
+    <div class="head"><span class="label">Syllables</span><code>split(text)</code></div>
+    <div class="scroll"><table><thead><tr><th>Char</th><th>Consonant</th><th>Order</th><th>Kind</th></tr></thead><tbody id="o-syl"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <div class="head"><label class="label" for="lat">Latin → Fidel</label><code>to_fidel(latin)</code></div>
+    <input id="lat" value="selam ityop'ya" spellcheck="false" autocomplete="off">
+    <div class="out eth" id="o-fid" style="margin-top:10px"></div>
+  </section>
+  <section class="card">
+    <div class="head"><label class="label" for="n">Number → Ethiopic numeral</label><code>to_ethiopic(n)</code></div>
+    <input id="n" value="2016" inputmode="numeric" autocomplete="off">
+    <div class="out eth" id="o-eth" style="margin-top:10px"></div>
+  </section>
+</main>
+
+<footer>
+  <span class="label">fidel · MIT · <a href="https://github.com/tofiqueadam/fidel">source on GitHub</a></span>
+  <span class="label">pip install git+https://github.com/tofiqueadam/fidel</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+<script>
+const MODULES = ['__init__', '_tables', 'script', 'normalize', 'numerals', 'tokenize', 'translit'];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let py, api;
+
+const GLUE = `
+import json, difflib, fidel
+def segs(a, b):
+    # [text, changed] runs of b, so the page can highlight what fidel changed.
+    out = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        if j2 > j1: out.append([b[j1:j2], op != 'equal'])
+    return out
+def analyse(text, level):
+    syl = [dict(ch=s.char, c=s.consonant, o=s.order, k=s.kind) for s in fidel.split(text)][:200]
+    return json.dumps(dict(
+        norm=segs(text, fidel.normalize(text, level)), rom=fidel.romanize(text),
+        words=fidel.words(text), sent=fidel.sentences(text),
+        num=segs(text, fidel.replace_numerals(text)), syl=syl))
+def latin(s):
+    return fidel.to_fidel(s)
+def ethnum(s):
+    s = s.strip().replace(',', '')
+    if not s.isdigit(): return ''
+    n = int(s)
+    return fidel.to_ethiopic(n) if 0 < n < 10**12 else ''
+`;
+
+// Python returns [text, changed] runs; highlight the changed ones.
+const marked = (runs) => runs.map(([t, c]) => (c ? `<span class="diff">${esc(t)}</span>` : esc(t))).join('');
+
+function render() {
+  if (!api) return;
+  const text = $('src').value;
+  const r = JSON.parse(api.analyse(text, $('level').value));
+  $('o-norm').innerHTML = marked(r.norm);
+  $('o-rom').textContent = r.rom;
+  $('o-words').innerHTML = r.words.map((w) => `<span class="chip${/^[\p{P}\p{S}]+$/u.test(w) ? ' p' : ''}">${esc(w)}</span>`).join('');
+  $('o-sent').innerHTML = r.sent.map((s) => `<li>${esc(s)}</li>`).join('');
+  $('o-num').innerHTML = marked(r.num);
+  $('o-syl').innerHTML = r.syl.map((s) => `<tr><td class="ch">${esc(s.ch)}</td><td>${esc(s.c)}</td><td>${s.o}</td><td>${esc(s.k)}</td></tr>`).join('');
+}
+const renderLat = () => { if (api) $('o-fid').textContent = api.latin($('lat').value); };
+const renderNum = () => { if (api) $('o-eth').textContent = api.ethnum($('n').value) || '—'; };
+
+let timer;
+const debounced = () => { clearTimeout(timer); timer = setTimeout(render, 120); };
+$('src').addEventListener('input', debounced);
+$('level').addEventListener('change', render);
+$('lat').addEventListener('input', renderLat);
+$('n').addEventListener('input', renderNum);
+document.querySelectorAll('[data-sample]').forEach((b) => b.addEventListener('click', () => { $('src').value = b.dataset.sample; render(); }));
+
+(async () => {
+  try {
+    py = await loadPyodide();
+    $('status').textContent = 'Loading fidel…';
+    py.FS.mkdirTree('/home/pyodide/fidel');
+    await Promise.all(MODULES.map(async (m) => {
+      const res = await fetch(`fidel/${m}.py`);
+      if (!res.ok) throw new Error(`fidel/${m}.py: HTTP ${res.status}`);
+      py.FS.writeFile(`/home/pyodide/fidel/${m}.py`, await res.text());
+    }));
+    py.runPython('import sys; sys.path.insert(0, "/home/pyodide")');
+    py.runPython(GLUE);
+    api = { analyse: py.globals.get('analyse'), latin: py.globals.get('latin'), ethnum: py.globals.get('ethnum') };
+    const v = py.runPython('import fidel; fidel.__version__');
+    $('status').textContent = `Ready · fidel ${v} · Python ${py.runPython('import sys; sys.version.split()[0]')}`;
+    $('status').classList.add('ready');
+    $('main').setAttribute('aria-busy', 'false');
+    render(); renderLat(); renderNum();
+  } catch (e) {
+    $('status').textContent = 'Could not load Python. Check your connection and reload.';
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>

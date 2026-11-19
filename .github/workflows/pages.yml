@@ -1,0 +1,31 @@
+name: Deploy playground to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: ['playground/**', 'src/fidel/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # The playground loads the library's own source files, so the demo
+      # always runs exactly what is on main.
+      - run: |
+          mkdir -p _site/fidel
+          cp playground/index.html _site/
+          cp src/fidel/*.py _site/fidel/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4

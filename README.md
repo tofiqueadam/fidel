@@ -3,6 +3,8 @@
   <img src="docs/banner-light.svg" width="100%" alt="fidel — a toolkit for Amharic and Ge'ez-script text">
 </picture>
 
+**▶ [Try it live in your browser](https://tofiqueadam.github.io/fidel/)**: the real library running on Pyodide, no install needed.
+
 **fidel** is a small, dependency-free Python library for cleaning and working with Amharic text written in Ge'ez script (ፊደል).
 
 Amharic text from the web is messy. One sound can be written with several letters (ሀ / ሐ / ኀ, ሰ / ሠ, አ / ዐ, ጸ / ፀ). Writers spell labialized syllables in different ways (ቱዋ vs ቷ). The ፡ word separator, `፡፡` used in place of `።`, and Ethiopic numerals all trip up general-purpose tokenizers. `fidel` handles these problems with small, tested functions.
